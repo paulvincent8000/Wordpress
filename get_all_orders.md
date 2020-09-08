@@ -23,17 +23,27 @@ function get_all_orders(){
 	global $wpdb;
 
 	$sql = <<<SQL
-					select `OI`.`order_item_id` AS `order_item_id`,`OI`.`order_id` AS `order_id`,`P`.`post_date` AS `date_of_order`,`U`.`display_name` AS `name`,`U`.`ID` AS `member`,`OI`.`order_item_name` AS `order_item_name`,`OMQ`.`meta_value` AS `quantity`,`OMA`.`meta_value` AS `value`
-					from (((((`amervallei_nl_wordpress`.`www_woocommerce_order_items` `OI`
-					join `amervallei_nl_wordpress`.`www_woocommerce_order_itemmeta` `OMQ` on(`OI`.`order_item_id` = `OMQ`.`order_item_id`))
-					join `amervallei_nl_wordpress`.`www_woocommerce_order_itemmeta` `OMA` on(`OI`.`order_item_id` = `OMA`.`order_item_id`))
-					join `amervallei_nl_wordpress`.`www_posts` `P` on(`OI`.`order_id` = `P`.`ID`))
-					join `amervallei_nl_wordpress`.`www_postmeta` `PM` on(`OI`.`order_id` = `PM`.`post_id`))
-					join `amervallei_nl_wordpress`.`www_users` `U` on(`PM`.`meta_value` = `U`.`ID`))
-					where `OMQ`.`meta_key` = '_qty'
-					and `OMA`.`meta_key` = '_line_total'
-					and `PM`.`meta_key` = '_customer_user'
-					and to_days(current_timestamp()) - to_days(`P`.`post_date`) < 120
+					SELECT
+					oi.order_id Nr,
+					DATE_FORMAT(p.post_date, '%d.%m.%Y' ) Datum,
+					u.display_name Naam,
+					u.ID Lid,
+					oi.order_item_name Product,
+					max(case when oim.meta_key = '_qty' then oim.meta_value end) Stk,
+					max(case when oim.meta_key = '_line_total' then oim.meta_value end) Euro
+					FROM
+					www_woocommerce_order_itemmeta oim
+					JOIN www_woocommerce_order_items oi ON oim.order_item_id = oi.order_item_id
+					JOIN www_posts p ON oi.order_id = p.ID
+					JOIN www_postmeta pm ON oi.order_id = pm.post_id
+					JOIN www_users u ON pm.meta_value = u.ID
+					WHERE
+					pm.meta_key = '_customer_user'
+					AND to_days(current_timestamp()) - to_days(`p`.`post_date`) < 120
+					GROUP BY
+					oim.order_item_id
+					ORDER BY
+					oi.order_id desc;
 					SQL;
 
 					$results = $wpdb->get_results( $sql, OBJECT );

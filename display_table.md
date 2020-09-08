@@ -1,4 +1,4 @@
-# display_table( $sql )
+# display_table( $result )
 This function takes the result of a given SQL query and displays a formatted table on screen.
 
 
@@ -10,10 +10,14 @@ This function takes a result of a given SQL query statement as an argument and r
 Must be called from a function that provides the SQL query as a variable, e.g. get_all_orders.
 
 
+# Resources
+Information on the functions used can be found in the WordPress developer [code reference](https://developer.wordpress.org/reference/classes/wpdb/).
+
+
 # Using the display_table function
 The **$results** variable is passed as an argument when the function is called. It contains output from the SQL query.
 
-The query output is provided as an argument to the function in the **$results** object. This is an example of the content:
+The query result is received in the form of a numerically indexed array of row objects: **$results**. This is an example of the content showing its structure:
 ```
 Array (
   [0] => stdClass Object ( [ID] => 20 [display_name] => Yogi Bear [user_email] => Yogi@gmail.com )
@@ -31,11 +35,7 @@ The print_r functions (commented out) can be used to view the array contents for
 
 
 ``` php
-function display_table( $sql ){
-
-	global $wpdb;
-
-	$results = $wpdb->get_results( $sql, OBJECT );
+function display_table( $results ){
 
 	$headers = $results[0];
 	// print_r( $headers );
